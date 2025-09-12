@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart | Blissora</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 15px;
+    }
+
+    .cart-img {
+      width: 120px;
+      height: auto;
+      margin-right: 20px;
+      border-radius: 10px;
+      transition: transform 0.3s ease;
+    }
+
+    .cart-img:hover {
+      transform: scale(1.1);
+    }
+
+    .item-info h4 {
+      margin: 0 0 10px;
+    }
+
+    .item-info p {
+      margin: 5px 0;
+    }
+
+    .remove-btn {
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .cart-total {
+      text-align: right;
+      margin-top: 30px;
+      font-size: 1.2rem;
+    }
+
+    .btn {
+      background-color: #d63384;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-weight: 600;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .cart h2 {
+      text-align: center;
+      margin: 40px 0 20px;
+      color: #d63384;
+    }
+
+    .navbar {
+      padding: 1rem 2rem;
+      background-color: white;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      color: #d63384;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    .navbar ul li a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    .navbar .cart-count {
+      background-color: #d63384;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 8px;
+      font-size: 12px;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="header">
+    <nav class="navbar">
+      <a href="bliss.html" class="navbar-logo">
+        <img src="images/logo2.jpg" alt="Blissora Logo">
+      </a>
+      <div class="hamburger" id="hamburgerMenu" aria-label="Open navigation" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="bliss.html#home">Home</a></li>
+        <li><a href="discover.html">Our Story</a></li>
+        <li><a href="collections.html">Collections</a></li>
+        <li><a href="game.html">Play Game</a></li>
+        <li><a href="contact.html">Connect us</a></li>
+      </ul>
+      <div class="cta-buttons">
+        <button class="dark-mode-toggle"><i class="fas fa-moon"></i></button>
+        <a href="wishlist.html" class="wishlist-icon" title="Wishlist"><i class="fas fa-heart"></i></a>
+        <a href="signup.html" class="signup-btn animated-btn">Sign Up / Login</a>
+        <a href="cart.html" class="cart-icon" title="Cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">0</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===== CART SECTION ===== -->
+  <section class="cart container">
+    <h2>Your Cart</h2>
+    <div id="cart-items" class="cart-items">
+      <!-- JS will populate cart here -->
+    </div>
+
+    <div class="cart-total">
+      <h3>Total: ₹<span id="cart-total">0</span></h3>
+      <button class="btn" onclick="placeOrder()">Place Order</button>
+    </div>
+  </section>
+
+  <!-- ===== TOAST MESSAGE ===== -->
+  <div id="toast" class="toast">Product added to cart!</div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <p style="text-align: center; padding: 20px;">© 2025 Blissora. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ===== JAVASCRIPT ===== -->
+  <script>
+    // Get logged-in user
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    const cartContainer = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+
+    if (!user || !token) {
+      alert('Please log in to view your cart.');
+      window.location.href = 'login.html';
+    }
+
+    let cart = [];
+
+    async function fetchCart() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/cart/${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        cart = data.items || [];
+        renderCart();
+      } catch (err) {
+        cartContainer.innerHTML = '<p>Failed to load cart.</p>';
+      }
+    }
+
+    function renderCart() {
+      cartContainer.innerHTML = '';
+      let total = 0;
+      if (cart.length === 0) {
+        cartContainer.innerHTML = '<p>Your cart is empty.</p>';
+      }
+      cart.forEach((item, index) => {
+        total += (item.product.price || 0) * (item.quantity || 1);
+        const itemHTML = `
+          <div class="cart-item">
+            <img src="${item.product.image || ''}" alt="${item.product.name || ''}" class="cart-img" />
+            <div class="item-info">
+              <h4>${item.product.name || ''}</h4>
+              <p>₹${item.product.price || 0} x 
+                <input type="number" min="1" value="${item.quantity || 1}" onchange="updateQty('${item.product._id}', this.value)">
+              </p>
+              <button onclick="removeItem('${item.product._id}')" class="remove-btn">Remove</button>
+            </div>
+          </div>
+        `;
+        cartContainer.innerHTML += itemHTML;
+      });
+      cartTotal.textContent = total.toFixed(2);
+      updateCartCount();
+    }
+
+    async function updateQty(productId, newQty) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/cart/${user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ productId, quantity: parseInt(newQty) })
+        });
+        const data = await res.json();
+        cart = data.items || [];
+        renderCart();
+      } catch (err) {
+        alert('Failed to update quantity.');
+      }
+    }
+
+    async function removeItem(productId) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/cart/${user.id}/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        cart = data.items || [];
+        renderCart();
+      } catch (err) {
+        alert('Failed to remove item.');
+      }
+    }
+
+    function updateCartCount() {
+      const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      const countEl = document.querySelector('.cart-count');
+      if (countEl) countEl.textContent = totalItems;
+    }
+
+    async function placeOrder() {
+      if (cart.length === 0) {
+        alert('Your cart is empty.');
+        return;
+      }
+      // For now, just clear the cart in backend
+      try {
+        for (const item of cart) {
+          await removeItem(item.product._id);
+        }
+        alert('✅ Your order has been placed successfully!');
+        window.location.href = 'thankyou.html';
+      } catch (err) {
+        alert('Failed to place order.');
+      }
+    }
+
+    window.updateQty = updateQty;
+    window.removeItem = removeItem;
+    window.placeOrder = placeOrder;
+
+    window.addEventListener('DOMContentLoaded', fetchCart);
+  </script>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+  const hamburger = document.getElementById('hamburgerMenu');
+  const navLinks = document.getElementById('navLinks');
+  if (hamburger && navLinks) {
+    hamburger.addEventListener('click', function () {
+      hamburger.classList.toggle('active');
+      navLinks.classList.toggle('show');
+    });
+    navLinks.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('show');
+      });
+    });
+  }
+});
+</script>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6DQD1P1L1QnE2e+6pD1DfQ6g9Q6Q6Q6Q6Q6Q6Q6Q6Q6Q" crossorigin="anonymous"></script>
+
+</body>
+</html>
